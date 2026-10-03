@@ -14,14 +14,14 @@ const snapshot: ContextUsageSnapshot = {
 };
 
 describe("toContextInspectorSnapshot", () => {
-	it("sorts by size, drops empty categories, and prefers reported totals", () => {
+	it("keeps request order, drops empty categories, and prefers reported totals", () => {
 		const result = toContextInspectorSnapshot(snapshot);
-		expect(result.categories.map((category) => category.label)).toEqual(["System Prompt", "Tools"]);
+		expect(result.categories.map((category) => category.label)).toEqual(["Tools", "System Prompt"]);
 		expect(result.totalTokens).toBe(1000);
 		expect(result.contextWindow).toBe(128_000);
 		expect(result.contextPercent).toBe(0.8);
-		expect(result.categories[1]?.preview).toBe("read");
-		expect(result.categories[0]?.preview).toBeUndefined();
+		expect(result.categories[0]?.preview).toBe("read");
+		expect(result.categories[1]?.preview).toBeUndefined();
 	});
 
 	it("falls back to the estimate when pi reports no usage", () => {

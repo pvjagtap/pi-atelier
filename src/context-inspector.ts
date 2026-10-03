@@ -27,7 +27,7 @@ export interface ContextInspectorSnapshot {
 
 const PREVIEW_MAX_CHARS = 120;
 
-/** Flatten a Context View usage snapshot into sidebar rows, largest category first. */
+/** Flatten a Context View usage snapshot into sidebar rows, in request-assembly order. */
 export function toContextInspectorSnapshot(usage: ContextUsageSnapshot): ContextInspectorSnapshot {
 	const contextWindow = usage.reported?.contextWindow ?? 0;
 	const percent = usage.reported?.percent;
@@ -38,8 +38,10 @@ export function toContextInspectorSnapshot(usage: ContextUsageSnapshot): Context
 		contextPercent: percent ?? null,
 		categories: usage.categories
 			.filter((category) => category.tokens > 0)
-			.map(toCategory)
-			.sort((a, b) => b.tokens - a.tokens),
+			// Order comes from Context View, which lists categories in the order pi
+			// assembles them into a request. Keep it: a size sort would disagree with
+			// `/atelier context usage` for the same numbers.
+			.map(toCategory),
 	};
 }
 
