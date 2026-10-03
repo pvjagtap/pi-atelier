@@ -48,10 +48,6 @@
 		"check": "npm run typecheck && npm run format:check && npm test && npm run test:context-view && npm run check:pack && npm run check:audit && npm run check:install",
 		"test:context-view": "node --test tests/context-view/*.test.ts"
 	},
-	"peerDependencies": {
-		"@earendil-works/pi-coding-agent": ">=1.0.0",
-		"@earendil-works/pi-tui": ">=1.0.0"
-	},
 	"peerDependenciesMeta": {
 		"@earendil-works/pi-coding-agent": {
 			"optional": true
@@ -70,5 +66,9 @@
 	},
 	"engines": {
 		"node": ">=22.19.0"
+	},
+	"peerDependencies": {
+		"@earendil-works/pi-coding-agent": ">=1.0.0",
+		"@earendil-works/pi-tui": ">=1.0.0"
 	}
 }
