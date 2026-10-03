@@ -96,6 +96,12 @@ User configuration:
 ~/.pi/agent/pi-atelier.json
 ```
 
+Context View colors and map size (optional, created by `/atelier context config`):
+
+```text
+~/.pi/agent/extensions/pi-context-view.json
+```
+
 Trusted project configuration:
 
 ```text
