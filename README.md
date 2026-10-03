@@ -1,8 +1,8 @@
 # Pi Atelier
 
 [![npm version](https://img.shields.io/npm/v/pi-atelier)](https://www.npmjs.com/package/pi-atelier)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/michaelmjhhhh/pi-atelier/blob/main/LICENSE)
-[![Pi compatibility: 0.84.0 or newer](https://img.shields.io/badge/Pi-%3E%3D0.84.0-violet)](#requirements)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](https://github.com/pvjagtap/pi-atelier/blob/main/LICENSE)
+[![Pi compatibility: 1.0.0 or newer](https://img.shields.io/badge/Pi-%3E%3D1.0.0-violet)](#requirements)
 
 Keep model, context, Git status, usage, and tool activity visible while you work in [Pi](https://pi.dev).
 
@@ -10,9 +10,9 @@ Pi Atelier adds a responsive status rail to the composer and a live activity sid
 
 [Quick start](#quick-start) · [Features](#features) · [Use](#use) · [Configuration](#configuration) · [Troubleshooting](#troubleshooting)
 
-[![Pi Atelier status rail and activity sidebar demo](https://raw.githubusercontent.com/michaelmjhhhh/pi-atelier/main/assets/demo.png?v=0.10.0)](https://github.com/michaelmjhhhh/pi-atelier/releases/download/v0.10.0/demo.mp4)
+[![Pi Atelier status rail and activity sidebar demo](https://raw.githubusercontent.com/pvjagtap/pi-atelier/main/assets/demo.png?v=0.10.0)](https://github.com/pvjagtap/pi-atelier/releases/download/v0.10.0/demo.mp4)
 
-[Watch the demo (v0.10.0)](https://github.com/michaelmjhhhh/pi-atelier/releases/download/v0.10.0/demo.mp4)
+[Watch the demo (v0.10.0)](https://github.com/pvjagtap/pi-atelier/releases/download/v0.10.0/demo.mp4)
 
 ## Quick start
 
@@ -37,7 +37,7 @@ Pi packages run with your system permissions. Review third-party source before i
 
 ### Requirements
 
-- Pi 0.84.0 or newer
+- Pi 1.0.0 or newer
 - Node.js 22.19.0 or newer
 - Interactive TUI mode
 - A monospace terminal font; use Plain text mode or select a Nerd Font for icons
@@ -49,6 +49,7 @@ Plain text mode works with a standard monospace font and preserves colors, metri
 ## Features
 
 - **Subagent costs:** colored per-child cost curves from pi-subagents accounting events, with matching legends and real observation markers. Open `/atelier` → **Subagent usage** (or `/atelier usage`) for a framed, larger graph, keyboard focus and individual reply costs. Kitty-compatible terminals display smooth native graphics; other terminals use text strokes.
+- **Context View:** measure what actually occupies the model context — base prompt sections, context files, skills, tool definitions, extension injections, and messages — attributed to the extension that added them. Open `/atelier context` for the Usage map or `/atelier context injections` for the captured initial request. The sidebar's **CONTEXT DETAIL** panel shows the same measurement once a turn has been captured. Vendored from [pi-context-view](https://github.com/dimk90/pi-context-view) (MIT); see `src/context-view/VENDOR.md`.
 - **Session visibility:** model, thinking level, context, token usage, cost, and session details in a compact status rail and sidebar.
 - **Live activity:** agent and tool activity, TODOs, response timing, and completion notifications on macOS and Windows.
 - **Workspace context:** workspace identity and read-only Git status alongside your session.
@@ -61,6 +62,9 @@ No telemetry or external network requests. See [Privacy](#privacy).
 Open `/atelier` or press **F6** to change display settings, control the sidebar, select models and tools, or view subagent usage.
 
 ```text
+/atelier context            # context usage map
+/atelier context injections # captured initial prompt, tools, injections
+/atelier context config     # create the Context View color/map config file
 /atelier display            # display settings
 /atelier usage              # subagent cost graph
 /atelier sidebar            # toggle sidebar visibility
@@ -140,6 +144,7 @@ Panel IDs are namespaced (`vendor:name`). New panels start hidden; enable them i
 - Status rail missing: use TUI mode and check for another custom footer.
 - Missing icon glyphs: choose **Settings → Font mode: Plain text**, or select a Nerd Font in your terminal settings.
 - Metric mismatch: token and cost totals cover the session; context usage covers the current model context.
+- CONTEXT DETAIL panel empty: the measurement is captured from a real turn. Send one prompt, or open `/atelier context`, which may run a single silent probe.
 
 ## Privacy
 
@@ -152,18 +157,19 @@ Pi Atelier:
 - Does not read untracked file contents
 - Reads project configuration only for trusted projects
 - Does not include prompts or responses in notifications
+- Context View measures the context locally. Opening it before any turn may run one silent probe: a run that executes extension handlers and is aborted before a request reaches the model provider. Only probe message identities (role and timestamp) are written to the session, never content
 
 ## Development
 
 ```bash
-git clone https://github.com/michaelmjhhhh/pi-atelier.git
+git clone https://github.com/pvjagtap/pi-atelier.git
 cd pi-atelier
 npm ci
 npm run check
 ./node_modules/.bin/pi --no-session --no-extensions -e ./extensions/index.ts
 ```
 
-See [CONTRIBUTING.md](https://github.com/michaelmjhhhh/pi-atelier/blob/main/CONTRIBUTING.md).
+See [CONTRIBUTING.md](https://github.com/pvjagtap/pi-atelier/blob/main/CONTRIBUTING.md).
 
 The command above opens a temporary session with only the checkout's extension loaded, avoiding conflicts with an installed copy.
 
@@ -173,11 +179,8 @@ through the development Pi host. Run `npm run check:audit` or `npm run check:ins
 investigate dependency warnings. Warnings from an existing Pi installation can also come from the
 host or other installed packages; Atelier's checks cover its own dependency trees.
 
-Development stays on Pi 0.84.0 to check the minimum supported API. A scoped npm override patches
-that host's pinned `undici` dependency to 8.10.2. Remove the override when the development baseline
-moves to a compatible Pi release with patched `undici`. Root overrides do not apply to consumers
-or update their Pi hosts.
+Development stays on Pi 1.0.0, the minimum supported API.
 
 ## License
 
-[MIT](https://github.com/michaelmjhhhh/pi-atelier/blob/main/LICENSE)
+[MIT](https://github.com/pvjagtap/pi-atelier/blob/main/LICENSE)

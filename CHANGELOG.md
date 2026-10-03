@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Add Context View: `/atelier context [usage|injections|config]` opens the full context usage map and the captured initial prompt/tools/injections, measured from the real request rather than estimated. Vendored from [pi-context-view](https://github.com/dimk90/pi-context-view) 0.6.0 (MIT); see `src/context-view/VENDOR.md`.
+- Add a built-in CONTEXT DETAIL sidebar panel fed by the same measurement, so the sidebar and `/atelier context` always agree. The panel stays hidden until a turn has been captured.
+- Add argument completions to `/atelier`.
+- Require Pi 1.0.0: forward `OverlayHandle.getBounds()` through the fullscreen overlay adapter.
 - Automatically collapse the Sidebar when terminal width is limited and restore it when space returns. Add independent Auto/Manual modes and show/hide controls; preserve preferred width and full TODO output while collapsed ([#76](https://github.com/michaelmjhhhh/pi-atelier/issues/76)).
 
 ## 0.13.0 — 2026-10-02

@@ -24,20 +24,20 @@
 		"extensions": [
 			"./extensions/index.ts"
 		],
-		"image": "https://raw.githubusercontent.com/michaelmjhhhh/pi-atelier/main/assets/preview.png"
+		"image": "https://raw.githubusercontent.com/pvjagtap/pi-atelier/main/assets/preview.png"
 	},
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/michaelmjhhhh/pi-atelier.git"
+		"url": "git+https://github.com/pvjagtap/pi-atelier.git"
 	},
 	"bugs": {
-		"url": "https://github.com/michaelmjhhhh/pi-atelier/issues"
+		"url": "https://github.com/pvjagtap/pi-atelier/issues"
 	},
-	"homepage": "https://github.com/michaelmjhhhh/pi-atelier#readme",
+	"homepage": "https://github.com/pvjagtap/pi-atelier#readme",
 	"scripts": {
 		"test": "vitest run",
 		"test:watch": "vitest",
-		"typecheck": "tsc --noEmit",
+		"typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.context-view-tests.json",
 		"format": "biome format --write .",
 		"format:check": "biome format .",
 		"check:pack": "node scripts/verify-pack.mjs",
@@ -45,11 +45,12 @@
 		"check:install": "node scripts/verify-install.mjs",
 		"bench:sidebar": "node scripts/benchmark-sidebar.mjs",
 		"bench:workspace": "node scripts/benchmark-workspace.mjs",
-		"check": "npm run typecheck && npm run format:check && npm test && npm run check:pack && npm run check:audit && npm run check:install"
+		"check": "npm run typecheck && npm run format:check && npm test && npm run test:context-view && npm run check:pack && npm run check:audit && npm run check:install",
+		"test:context-view": "node --test tests/context-view/*.test.ts"
 	},
 	"peerDependencies": {
-		"@earendil-works/pi-coding-agent": ">=0.84.0",
-		"@earendil-works/pi-tui": ">=0.84.0"
+		"@earendil-works/pi-coding-agent": ">=1.0.0",
+		"@earendil-works/pi-tui": ">=1.0.0"
 	},
 	"peerDependenciesMeta": {
 		"@earendil-works/pi-coding-agent": {
@@ -61,17 +62,11 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.5.4",
-		"@earendil-works/pi-coding-agent": "0.84.0",
-		"@earendil-works/pi-tui": "0.84.0",
+		"@earendil-works/pi-coding-agent": "^1.0.0",
+		"@earendil-works/pi-tui": "^1.0.0",
 		"@types/node": "24.12.4",
 		"typescript": "5.9.3",
 		"vitest": "4.1.11"
-	},
-	"overrides": {
-		"@earendil-works/pi-coding-agent@0.84.0": {
-			"undici": "8.10.2",
-			"brace-expansion": "5.0.12"
-		}
 	},
 	"engines": {
 		"node": ">=22.19.0"

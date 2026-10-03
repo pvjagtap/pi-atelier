@@ -45,6 +45,7 @@ export const BUILTIN_SIDEBAR_PANEL_IDS = [
 	"alerts",
 	"todos",
 	"context",
+	"context-detail",
 	"workspace",
 	"usage",
 	"subagents",

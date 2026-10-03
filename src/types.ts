@@ -1,3 +1,4 @@
+import type { ContextInspectorSnapshot } from "./context-inspector.js";
 import type { DENSITIES, PRODUCT_SEGMENT_ORDER, TEMPLATE_NAMES } from "./display.js";
 import type { BUILTIN_SIDEBAR_PANEL_IDS } from "./sidebar-panels.js";
 import type { SubagentUsageSnapshot } from "./subagent-usage.js";
@@ -115,6 +116,7 @@ export interface AtelierState {
 	workspacePulse: WorkspacePulseState;
 	metrics: AtelierMetrics;
 	subagentUsage?: SubagentUsageSnapshot;
+	contextInspector?: ContextInspectorSnapshot;
 	extensionStatuses: readonly string[];
 }
 

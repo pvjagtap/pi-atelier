@@ -2,6 +2,7 @@ import { basename, join } from "node:path";
 import {
 	CONFIG_DIR_NAME,
 	type ExtensionAPI,
+	type ExtensionCommandContext,
 	type ExtensionContext,
 	estimateTokens,
 	getAgentDir,
@@ -15,6 +16,7 @@ import {
 	type SpawnNotificationProcess,
 } from "../src/completion-notifier.js";
 import { DEFAULT_CONFIG, loadConfig, saveUserConfigPatch } from "../src/config.js";
+import { type ContextViewController, installContextView } from "../src/context-view/index.ts";
 import { AtelierEditor } from "../src/editor.js";
 import { type AtelierFooterComponent, createFooterComponent } from "../src/footer.js";
 import { createImageCompositorBinding } from "../src/image-compositor.js";
@@ -142,6 +144,14 @@ export default function atelierExtension(
 	dependencies: AtelierExtensionDependencies = {},
 ): void {
 	const loadAtelierConfig = dependencies.loadConfig ?? loadConfig;
+	// Installs its own capture handlers once per extension load; Atelier owns the
+	// command surface, so the controller is mounted under `/atelier context`.
+	let contextView: ContextViewController | undefined;
+	try {
+		contextView = installContextView(pi);
+	} catch {
+		// Context measurement is optional; the rest of Atelier still installs.
+	}
 	const saveConfigPatch = dependencies.saveConfigPatch ?? saveUserConfigPatch;
 	const noopRender = (): void => undefined;
 	let activeSession: ActiveSession | undefined;
@@ -511,7 +521,7 @@ export default function atelierExtension(
 		}
 	}
 
-	type CommandHandler = (ctx: ExtensionContext, args: readonly string[]) => Promise<void> | void;
+	type CommandHandler = (ctx: ExtensionCommandContext, args: readonly string[]) => Promise<void> | void;
 	const usage = (ctx: ExtensionContext, syntax: string): void =>
 		ctx.ui.notify(`Usage: /atelier ${syntax}`, "warning");
 	const isOnOff = (value: string | undefined): boolean =>
@@ -522,6 +532,13 @@ export default function atelierExtension(
 			usage: async (ctx, args) => {
 				if (args.length > 0) usage(ctx, "usage");
 				else await openUsage(ctx);
+			},
+			context: async (ctx, args) => {
+				if (!contextView) {
+					ctx.ui.notify("Context View is unavailable in this session", "warning");
+					return;
+				}
+				await contextView.run(args.join(" "), ctx);
 			},
 			display: async (ctx, args) => {
 				if (args.length > 0) usage(ctx, "display");
@@ -591,6 +608,16 @@ export default function atelierExtension(
 
 	pi.registerCommand("atelier", {
 		description: "Open or control the Pi Atelier status menu",
+		getArgumentCompletions: (prefix) => {
+			const trimmed = prefix.trimStart().toLowerCase();
+			const [first, ...rest] = trimmed.split(/\s+/);
+			if (rest.length > 0 && first === "context") {
+				return contextView?.getArgumentCompletions(rest.join(" ")) ?? null;
+			}
+			const names = ["context", "display", "usage", "sidebar", "enable", "disable"];
+			const matches = names.filter((name) => name.startsWith(trimmed));
+			return matches.length > 0 ? matches.map((value) => ({ value, label: value })) : null;
+		},
 		handler: async (args, ctx) => {
 			const [action, ...rest] = args.trim().toLowerCase().split(/\s+/).filter(Boolean);
 			const command = action === undefined ? undefined : commands.get(action);
@@ -665,6 +692,7 @@ export default function atelierExtension(
 			autoCompact,
 			enabled,
 			requestRender: requestRenders,
+			contextView,
 		});
 		cleanup.push(() => runtime.dispose());
 		const panelRegistry = createSidebarPanelRegistry({
@@ -801,6 +829,11 @@ export default function atelierExtension(
 		void current.runtime.refreshSubagentUsage();
 		requestAllRenders(current);
 	});
+	pi.on("before_agent_start", (event, ctx) => {
+		// ExtensionContext has no getSystemPromptOptions(); this event is the only place
+		// outside command handlers that carries the turn's structured prompt options.
+		getActiveSession(ctx)?.runtime.captureSystemPromptOptions(event.systemPromptOptions);
+	});
 	pi.on("agent_start", (_event, ctx) => {
 		const current = getActiveSession(ctx);
 		if (!current) return;
@@ -864,6 +897,8 @@ export default function atelierExtension(
 		current.runActivity.settle();
 		current.runtime.setActivity("ready");
 		if (!enabled) return;
+		// The Context View capture only exists after a turn reaches the model.
+		current.runtime.refreshContextInspector();
 		current.sidebar.requestRender();
 		if (current.runtime.getConfig().completionNotifications) {
 			current.completionNotifier.turnSettled(completionNotification(current));

@@ -1,7 +1,13 @@
 import { isDeepStrictEqual } from "node:util";
-import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
+import type {
+	BuildSystemPromptOptions,
+	ExtensionAPI,
+	ExtensionContext,
+} from "@earendil-works/pi-coding-agent";
 import { selectWorkingPhrase } from "./activity.js";
 import { resolveDisplayLayers } from "./config.js";
+import { toContextInspectorSnapshot } from "./context-inspector.js";
+import type { ContextViewController } from "./context-view/index.ts";
 import { cloneLayout } from "./display.js";
 import { aggregateMetrics, type UsageMessage } from "./metrics.js";
 import {
@@ -42,6 +48,8 @@ export interface RuntimeDependencies {
 	enabled?: boolean;
 	random?: () => number;
 	requestRender(): void;
+	/** Context View controller; absent when the measurement failed to install. */
+	contextView?: ContextViewController | undefined;
 	inspectWorkspace?(signal: AbortSignal): Promise<WorkspacePulseInspection>;
 }
 
@@ -85,6 +93,8 @@ export class AtelierRuntime {
 	#subagentEntries: readonly unknown[] = [];
 	#subagentAbort = new AbortController();
 	#subagentUnsubscribe: (() => void) | undefined;
+	#lastPromptOptions: BuildSystemPromptOptions | undefined;
+	readonly #contextView: ContextViewController | undefined;
 
 	constructor(dependencies: RuntimeDependencies) {
 		this.#pi = dependencies.pi;
@@ -96,6 +106,7 @@ export class AtelierRuntime {
 		this.#enabled = dependencies.enabled ?? true;
 		this.#random = dependencies.random ?? Math.random;
 		this.#requestRender = dependencies.requestRender;
+		this.#contextView = dependencies.contextView;
 		const inspectWorkspace = async (signal: AbortSignal): Promise<WorkspacePulseInspection> => {
 			if (!this.#isLiveAndTrusted()) return { kind: "unavailable" };
 			return dependencies.inspectWorkspace
@@ -347,6 +358,23 @@ export class AtelierRuntime {
 			if (this.#isLiveAndTrusted() && this.#state.subagentUsage?.pending) this.#scheduleSubagentRefresh(1500);
 		});
 		return this.#subagentRefresh;
+	}
+
+	/** Capture the most recent turn's prompt options from `before_agent_start`; `ExtensionContext` has no getter for them. */
+	captureSystemPromptOptions(options: BuildSystemPromptOptions): void {
+		this.#lastPromptOptions = options;
+		this.refreshContextInspector();
+	}
+
+	refreshContextInspector(): void {
+		if (this.#disposed || !this.#enabled) return;
+		try {
+			const usage = this.#contextView?.summarize(this.#ctx, this.#lastPromptOptions);
+			if (usage === undefined) return;
+			this.#replaceState({ ...this.#state, contextInspector: toContextInspectorSnapshot(usage) });
+		} catch {
+			// Context inspection is best-effort; keep the previous snapshot if available.
+		}
 	}
 
 	/** Workspace and subagent inspection run only for a live, enabled, trusted session. */

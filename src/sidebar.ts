@@ -263,6 +263,31 @@ function contextRows(
 	];
 }
 
+function contextDetailRows(snapshot: SidebarSnapshot, width: number, palette: AtelierPalette): string[] {
+	const inspector = snapshot.contextInspector;
+	// No rows until Context View has captured a turn: an empty group is dropped,
+	// so the panel costs no height before there is anything to measure.
+	if (inspector === undefined || inspector.categories.length === 0) return [];
+	const header =
+		inspector.contextWindow > 0
+			? `${formatTokens(inspector.totalTokens)} / ${formatTokens(inspector.contextWindow)}${inspector.contextPercent === null ? "" : ` · ${inspector.contextPercent.toFixed(1)}%`}`
+			: `${formatTokens(inspector.totalTokens)} tokens`;
+	const rows: string[] = [palette.paint("muted", header)];
+	for (const category of inspector.categories) {
+		const percent =
+			inspector.contextWindow > 0
+				? ` · ${(Math.min(1, category.tokens / inspector.contextWindow) * 100).toFixed(1)}%`
+				: "";
+		rows.push(
+			labeledRow(category.label, `${formatTokens(category.tokens)}${percent}`, width, palette, "primary"),
+		);
+		if (category.preview) {
+			rows.push(palette.paint("dim", fitToWidth(category.preview, Math.max(0, width - 2))));
+		}
+	}
+	return rows;
+}
+
 /** Usage counts keep one decimal (and reach billions) where the rail rounds harder. */
 function formatUsageTokens(count: number): string {
 	if (count < 1_000) return Math.trunc(count).toString();
@@ -454,6 +479,7 @@ const DROP_RANK = {
 	toolsStatus: 10,
 	subagents: 18,
 	usage: 20,
+	contextDetail: 22,
 	contributed: 25,
 	workspace: 30,
 	olderRecentTool: 50,
@@ -677,6 +703,14 @@ export function renderSidebarLines(
 				},
 				rows: contextRows(snapshot, config, panelWidth, palette, theme),
 				dropRank: DROP_RANK.required,
+			},
+		],
+		"context-detail": () => [
+			{
+				name: "contextDetail",
+				panel: { id: "context-detail", title: "CONTEXT DETAIL", role: "context" },
+				rows: contextDetailRows(snapshot, panelWidth, palette),
+				dropRank: DROP_RANK.contextDetail,
 			},
 		],
 		workspace: () => {

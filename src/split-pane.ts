@@ -363,6 +363,8 @@ export function createSplitPaneController(options: SplitPaneControllerOptions = 
 						}
 					},
 					isHidden: () => handle.isHidden(),
+					// Pi 1.0 added getBounds() to OverlayHandle; forward it so mouse routing works.
+					getBounds: () => handle.getBounds(),
 					focus: () => handle.focus(),
 					unfocus: (options) => handle.unfocus(options),
 					isFocused: () => handle.isFocused(),

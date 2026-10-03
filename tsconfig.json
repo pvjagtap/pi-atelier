@@ -9,7 +9,9 @@
 		"noUncheckedIndexedAccess": true,
 		"exactOptionalPropertyTypes": true,
 		"verbatimModuleSyntax": true,
+		"allowImportingTsExtensions": true,
 		"types": ["node"]
 	},
-	"include": ["extensions/**/*.ts", "src/**/*.ts", "tests/**/*.ts"]
+	"include": ["extensions/**/*.ts", "src/**/*.ts", "tests/**/*.ts"],
+	"exclude": ["tests/context-view"]
 }

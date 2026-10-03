@@ -1,0 +1,10 @@
+{
+	// Vendored pi-context-view tests, checked with upstream's compiler flags.
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"noUncheckedIndexedAccess": false,
+		"exactOptionalPropertyTypes": false
+	},
+	"include": ["tests/context-view/**/*.ts"],
+	"exclude": []
+}
